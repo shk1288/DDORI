@@ -2,31 +2,161 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>또리네 가계부</title>
-<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>또리네 가계부 💜</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}
-  input[type=number]::-webkit-inner-spin-button,
-  input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
-  input[type=number]{-moz-appearance:textfield;}
-  ::-webkit-scrollbar{width:6px;height:6px;}
-  ::-webkit-scrollbar-track{background:transparent;}
-  ::-webkit-scrollbar-thumb{background:rgba(167,139,250,0.3);border-radius:3px;}
-  select option{background:#1a1a2e;color:#f1f5f9;}
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0d0d1a;--bg1:#13131f;--bg2:#1a1a2e;--bg3:#1e1e32;
+  --t1:#f1f5f9;--t2:#8892a4;--t3:#4a5568;
+  --bd:rgba(255,255,255,0.07);--bd2:rgba(255,255,255,0.13);
+  --accent:#a78bfa;--green:#34d399;--orange:#fb923c;--blue:#60a5fa;--red:#f87171;
+}
+.light{
+  --bg:#f8f9fc;--bg1:#ffffff;--bg2:#f1f3f8;--bg3:#e8ebf2;
+  --t1:#0f172a;--t2:#64748b;--t3:#94a3b8;
+  --bd:rgba(0,0,0,0.07);--bd2:rgba(0,0,0,0.13);
+}
+body{background:var(--bg);color:var(--t1);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;min-height:100vh;transition:background .3s,color .3s;}
+input,select,textarea{font-family:inherit;font-size:13px;background:var(--bg2);border:1px solid var(--bd);border-radius:10px;color:var(--t1);padding:8px 12px;outline:none;transition:border .2s;}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);}
+input[type=number]{text-align:right;}
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}
+input[type=number]{-moz-appearance:textfield;}
+button{font-family:inherit;cursor:pointer;}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-thumb{background:rgba(167,139,250,0.3);border-radius:3px;}
+
+/* 레이아웃 */
+#app{max-width:1100px;margin:0 auto;padding:20px 16px;}
+
+/* 헤더 */
+#header{position:sticky;top:0;z-index:100;background:rgba(13,13,26,0.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--bd);}
+.light #header{background:rgba(255,255,255,0.95);}
+#header-inner{max-width:1100px;margin:0 auto;padding:0 16px;display:flex;align-items:center;justify-content:space-between;height:56px;}
+#logo{display:flex;align-items:center;gap:10px;}
+#logo-icon{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#a78bfa,#60a5fa);display:flex;align-items:center;justify-content:center;font-size:15px;}
+#logo-text{font-size:16px;font-weight:700;letter-spacing:-0.5px;}
+#header-btns{display:flex;gap:8px;align-items:center;}
+.btn-primary{background:linear-gradient(135deg,#a78bfa,#818cf8);color:#fff;border:none;border-radius:10px;padding:7px 14px;font-size:13px;font-weight:600;}
+.btn-ghost{background:var(--bg2);border:1px solid var(--bd);border-radius:10px;padding:7px 11px;font-size:14px;color:var(--t2);}
+
+/* 탭 */
+#tabs{max-width:1100px;margin:0 auto;padding:0 16px;display:flex;overflow-x:auto;gap:2px;}
+.tab-btn{background:none;border:none;padding:8px 14px;font-size:13px;color:var(--t2);border-radius:8px 8px 0 0;font-weight:400;white-space:nowrap;display:flex;align-items:center;gap:5px;transition:all .15s;}
+.tab-btn.active{background:var(--bg2);color:var(--accent);font-weight:600;}
+
+/* 카드 */
+.card{background:var(--bg1);border:1px solid var(--bd);border-radius:16px;}
+.section-card{padding:16px 20px;margin-bottom:12px;}
+
+/* 메트릭 그리드 */
+.metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:18px;}
+.metric-card{padding:14px 16px;position:relative;overflow:hidden;}
+.metric-label{font-size:10px;color:var(--t3);font-weight:500;letter-spacing:.5px;text-transform:uppercase;margin-bottom:7px;}
+.metric-val{font-size:19px;font-weight:700;letter-spacing:-0.5px;line-height:1;}
+.metric-val span{font-size:12px;font-weight:500;margin-left:2px;}
+.metric-sub{font-size:11px;margin-top:4px;opacity:.8;}
+.metric-icon{position:absolute;top:-8px;right:-8px;font-size:32px;opacity:.07;}
+
+/* 진행바 */
+.progress-wrap{background:var(--bg3);border-radius:8px;height:10px;overflow:hidden;}
+.progress-bar{height:100%;border-radius:8px;transition:width .6s ease;}
+
+/* 배지 */
+.badge{font-size:11px;padding:2px 8px;border-radius:6px;font-weight:600;}
+.badge-good{background:rgba(52,211,153,.1);color:#34d399;}
+.badge-warn{background:rgba(251,146,60,.1);color:#fb923c;}
+.badge-bad{background:rgba(248,113,113,.1);color:#f87171;}
+
+/* 입력 행 */
+.input-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--bd);}
+.input-row label{font-size:13px;color:var(--t2);min-width:130px;}
+.input-row input{width:120px;padding:5px 10px;border-radius:8px;border:1px solid var(--bd2);}
+
+/* 차트 컨테이너 */
+.chart-wrap{position:relative;width:100%;}
+
+/* 토스트 */
+#toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1e1e32;color:#fff;padding:10px 20px;border-radius:24px;font-size:13px;z-index:9999;border:1px solid rgba(167,139,250,.4);white-space:nowrap;display:none;}
+
+/* 모달 */
+#modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:9998;display:none;align-items:center;justify-content:center;padding:20px;}
+#modal-overlay.open{display:flex;}
+#modal-box{background:var(--bg1);border:1px solid rgba(248,113,113,.3);border-radius:20px;padding:28px 32px;max-width:360px;width:100%;}
+#modal-box h3{font-size:17px;font-weight:700;text-align:center;margin-bottom:8px;}
+#modal-box p{font-size:13px;color:var(--t2);text-align:center;line-height:1.8;margin-bottom:24px;}
+.modal-btns{display:flex;gap:10px;}
+.btn-cancel{flex:1;background:var(--bg2);border:1px solid var(--bd);border-radius:10px;padding:11px 0;font-size:14px;color:var(--t2);font-weight:500;}
+.btn-danger{flex:1;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border:none;border-radius:10px;padding:11px 0;font-size:14px;font-weight:700;}
+
+/* 비어있음 */
+.empty-state{text-align:center;padding:80px 0;}
+.empty-state .emoji{font-size:52px;margin-bottom:16px;}
+.empty-state h2{font-size:22px;font-weight:700;margin-bottom:8px;}
+.empty-state p{font-size:14px;color:var(--t2);margin-bottom:24px;}
+
+/* 히스토리 날짜 뱃지 */
+.date-badge{width:42px;height:42px;border-radius:11px;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.2);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;}
+.date-badge .year{font-size:9px;color:var(--accent);font-weight:600;line-height:1;}
+.date-badge .month{font-size:14px;color:var(--accent);font-weight:700;line-height:1.3;}
+
+/* 반응형 */
+@media(max-width:600px){
+  .metric-grid{grid-template-columns:repeat(2,1fr);}
+  .chart-grid{grid-template-columns:1fr!important;}
+  .input-row label{min-width:100px;font-size:12px;}
+  .input-row input{width:100px;}
+  #header-inner{padding:0 12px;}
+  #app{padding:16px 12px;}
+}
 </style>
 </head>
 <body>
-<div id="root"></div>
-<script type="text/babel">
-const {useState,useCallback,useEffect}=React;
-const {LineChart,Line,AreaChart,Area,BarChart,Bar,PieChart,Pie,Cell,XAxis,YAxis,CartesianGrid,Tooltip,ResponsiveContainer}=Recharts;
+<div id="toast"></div>
+<div id="modal-overlay">
+  <div id="modal-box">
+    <div style="font-size:36px;text-align:center;margin-bottom:12px">🗑️</div>
+    <h3>전체 초기화</h3>
+    <p>모든 월별 데이터와 목표가 삭제됩니다.<br/><span style="color:#f87171;font-weight:600">이 작업은 되돌릴 수 없습니다.</span></p>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">취소</button>
+      <button class="btn-danger" onclick="doReset()">초기화할게요</button>
+    </div>
+  </div>
+</div>
 
-const STORAGE_KEY="ttori_budget_v1";
+<div id="header">
+  <div id="header-inner">
+    <div id="logo">
+      <div id="logo-icon">💜</div>
+      <span id="logo-text">또리네 가계부</span>
+    </div>
+    <div id="header-btns">
+      <button class="btn-primary" onclick="startNew()">+ 이번 달 입력</button>
+      <button class="btn-ghost" id="dark-btn" onclick="toggleDark()">☀️</button>
+    </div>
+  </div>
+  <div id="tabs">
+    <button class="tab-btn active" data-tab="dashboard" onclick="setTab('dashboard')">📊 대시보드</button>
+    <button class="tab-btn" data-tab="input" onclick="setTab('input')">✏️ 입력</button>
+    <button class="tab-btn" data-tab="living" onclick="setTab('living')">🛒 생활비</button>
+    <button class="tab-btn" data-tab="assets" onclick="setTab('assets')">🏦 자산/목표</button>
+    <button class="tab-btn" data-tab="history" onclick="setTab('history')">📅 히스토리</button>
+  </div>
+</div>
+
+<div id="app">
+  <div id="tab-dashboard" class="tab-content"></div>
+  <div id="tab-input" class="tab-content" style="display:none"></div>
+  <div id="tab-living" class="tab-content" style="display:none"></div>
+  <div id="tab-assets" class="tab-content" style="display:none"></div>
+  <div id="tab-history" class="tab-content" style="display:none"></div>
+</div>
+
+<script>
+// ===== 데이터 정의 =====
 const IF=[{key:"salary",label:"월 기본급"},{key:"bonus",label:"평가급"},{key:"holiday",label:"명절상여"},{key:"travel",label:"출장여비"},{key:"overtime",label:"초과근무수당"},{key:"welfare",label:"복리후생비+식비"},{key:"otherIncome",label:"기타수입"}];
 const FF=[{key:"insurance",label:"보험료"},{key:"communication",label:"통신비"},{key:"subscription",label:"구독서비스"},{key:"carInsurance",label:"차량보험 월할"},{key:"carTax",label:"자동차세 월할"},{key:"maintenance",label:"주택관리비"},{key:"electricity",label:"전기요금"},{key:"water",label:"수도요금"},{key:"gas",label:"가스요금"},{key:"internet",label:"인터넷요금"},{key:"waterPurifier",label:"정수기 렌탈"},{key:"otherFixed",label:"기타 고정지출"}];
 const SF=[{key:"cashSaving",label:"현금저축"},{key:"stock",label:"주식투자"},{key:"pension",label:"퇴직연금 추가납입"},{key:"housing",label:"주택자금 적립"},{key:"otherSaving",label:"기타 투자"}];
@@ -35,665 +165,548 @@ const ASF=[{key:"cash",label:"현금"},{key:"deposit",label:"예적금"},{key:"s
 const DF=[{key:"card",label:"신용카드 미결제"},{key:"loan",label:"대출"},{key:"otherDebt",label:"기타부채"}];
 const ALL=[...IF,...FF,...SF,...LF,...ASF,...DF];
 const PALETTE=["#a78bfa","#34d399","#fb923c","#60a5fa","#f472b6","#facc15","#4ade80","#38bdf8","#e879f9","#a3e635"];
-const DG_DEFAULT=[{id:"g1",label:"입주자금 목표 (2028)",target:200000000},{id:"g2",label:"FIRE 목표 순자산",target:1000000000}];
+const STORAGE_KEY="ttori_budget_v1";
+const DEFAULT_GOALS=[{id:"g1",label:"입주자금 목표 (2028)",target:200000000},{id:"g2",label:"FIRE 목표 순자산",target:1000000000}];
 
+// ===== 상태 =====
+let months=[], goals=[...DEFAULT_GOALS], dark=true, currentTab="dashboard", editingMonth=null;
+let chartPie=null, chartBar=null, chartLine=null, chartNet=null;
+
+// ===== 유틸 =====
 function empty(y,m){const o={year:y,month:m,note:""};ALL.forEach(f=>{o[f.key]=0;});return o;}
-
-const sumF=(m,fs)=>fs.reduce((s,f)=>s+(Number(m[f.key])||0),0);
-const cm=m=>{
+function sumF(m,fs){return fs.reduce((s,f)=>s+(Number(m[f.key])||0),0);}
+function calcM(m){
   const income=sumF(m,IF),fixed=sumF(m,FF),saving=sumF(m,SF),living=sumF(m,LF);
   const budget=income-fixed-saving,remain=budget-living,savingRate=income>0?(saving/income)*100:0;
   const totalAsset=sumF(m,ASF),totalDebt=sumF(m,DF),netAsset=totalAsset-totalDebt;
   return{income,fixed,saving,living,budget,remain,savingRate,totalAsset,totalDebt,netAsset};
-};
-const fmt=n=>Math.round(n||0).toLocaleString("ko-KR");
-const fw=n=>{const v=Math.round(n||0);if(Math.abs(v)>=100000000)return(v<0?"-":"")+(Math.abs(v)/100000000).toFixed(1)+"억";if(Math.abs(v)>=10000)return(v<0?"-":"")+(Math.abs(v)/10000).toFixed(0)+"만";return(v<0?"-":"")+Math.abs(v).toLocaleString("ko-KR");};
+}
+function fmt(n){return Math.round(n||0).toLocaleString("ko-KR");}
+function fw(n){const v=Math.round(n||0);if(Math.abs(v)>=100000000)return(v<0?"-":"")+(Math.abs(v)/100000000).toFixed(1)+"억";if(Math.abs(v)>=10000)return(v<0?"-":"")+(Math.abs(v)/10000).toFixed(0)+"만";return(v<0?"-":"")+Math.abs(v).toLocaleString("ko-KR");}
+function lpColor(lp){return lp>100?"#f87171":lp>80?"#fb923c":"#34d399";}
+function lpBadge(lp){return lp>100?"badge-bad":lp>80?"badge-warn":"badge-good";}
+function lpText(lp){return lp>100?"초과":lp>80?"주의":"양호";}
 
-const CT=({active,payload,label})=>{
-  if(!active||!payload?.length)return null;
-  return(
-    <div style={{background:"#1a1a2e",border:"1px solid rgba(167,139,250,0.3)",borderRadius:10,padding:"10px 14px",fontSize:12}}>
-      <div style={{color:"#94a3b8",marginBottom:6}}>{label}</div>
-      {payload.map((p,i)=><div key={i} style={{color:p.color,fontWeight:600}}>{p.name}: {fmt(p.value)}원</div>)}
-    </div>
-  );
-};
-
-function App(){
-  const [dark,setDark]=useState(true);
-  const [tab,setTab]=useState("dashboard");
-  const [months,setMonths]=useState([]);
-  const [goals,setGoals]=useState(DG_DEFAULT);
-  const [ed,setEd]=useState(null);
-  const [gl,setGl]=useState("");
-  const [gt,setGt]=useState("");
-  const [toast,setToast]=useState(null);
-  const [confirmModal,setConfirmModal]=useState(false);
-  const [loaded,setLoaded]=useState(false);
-
-  // localStorage 불러오기
-  useEffect(()=>{
-    try{
-      const raw=localStorage.getItem(STORAGE_KEY);
-      if(raw){
-        const d=JSON.parse(raw);
-        if(d.months)setMonths(d.months);
-        if(d.goals)setGoals(d.goals);
-        if(d.dark!==undefined)setDark(d.dark);
-      }
-    }catch(e){}
-    setLoaded(true);
-  },[]);
-
-  // localStorage 저장
-  useEffect(()=>{
-    if(!loaded)return;
-    try{localStorage.setItem(STORAGE_KEY,JSON.stringify({months,goals,dark}));}catch(e){}
-  },[months,goals,dark,loaded]);
-
-  const showT=msg=>{setToast(msg);setTimeout(()=>setToast(null),2800);};
-  const lat=months[months.length-1]||null;
-  const prv=months[months.length-2]||null;
-  const c=lat?cm(lat):null;
-  const pc=prv?cm(prv):null;
-  const lp=c&&c.budget>0?(c.living/c.budget)*100:0;
-  const lp_color=lp>100?"#f87171":lp>80?"#fb923c":"#34d399";
-
-  const startEdit=m=>{setEd({...m});setTab("input");};
-  const startNew=()=>{
-    const now=new Date();const y=now.getFullYear(),mo=now.getMonth()+1;
-    const ex=months.find(m=>m.year===y&&m.month===mo);
-    if(ex){startEdit(ex);return;}
-    const nm=empty(y,mo);nm.salary=5050330;nm.insurance=450000;
-    setEd(nm);setTab("input");
-  };
-  const saveEd=()=>{
-    if(!ed)return;
-    const idx=months.findIndex(m=>m.year===ed.year&&m.month===ed.month);
-    const next=idx>=0?months.map((m,i)=>i===idx?ed:m):[...months,ed].sort((a,b)=>a.year*100+a.month-(b.year*100+b.month));
-    setMonths(next);setEd(null);showT("저장되었습니다 ✓");
-  };
-  const delM=m=>{
-    if(!window.confirm(m.year+"년 "+m.month+"월 데이터를 삭제할까요?"))return;
-    setMonths(months.filter(d=>!(d.year===m.year&&d.month===m.month)));
-    showT("삭제되었습니다.");
-  };
-  const sf=(k,v)=>setEd(p=>({...p,[k]:v}));
-
-  const exportCSV=useCallback(()=>{
-    const hdr=["연도","월",...ALL.map(f=>f.label),"메모"];
-    const rows=months.map(m=>[m.year,m.month,...ALL.map(f=>m[f.key]||0),(m.note||"").replace(/,/g," ")]);
-    const csv=[hdr,...rows].map(r=>r.join(",")).join("\n");
-    const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement("a");
-    a.href=url;a.download="또리네_가계부.csv";
-    document.body.appendChild(a);a.click();document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    showT("CSV 다운로드 완료 ✓");
-  },[months]);
-
-  const importCSV=e=>{
-    const file=e.target.files[0];if(!file)return;
-    const reader=new FileReader();
-    reader.onload=ev=>{
-      try{
-        const text=ev.target.result.replace(/^\uFEFF/,"");
-        const lines=text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
-        if(lines.length<2){showT("파일 형식이 맞지 않습니다.");return;}
-        const parsed=lines.slice(1).map(line=>{
-          const v=line.split(",");
-          const m=empty(Number(v[0]),Number(v[1]));
-          ALL.forEach((f,i)=>{m[f.key]=Number(v[i+2])||0;});
-          m.note=v[v.length-1]||"";
-          return m;
-        }).filter(m=>m.year>0&&m.month>0);
-        setMonths(parsed.sort((a,b)=>a.year*100+a.month-(b.year*100+b.month)));
-        showT("CSV 불러오기 완료! "+parsed.length+"개월");
-      }catch(e){showT("파일 읽기 오류");}
-    };
-    reader.readAsText(file,"UTF-8");
-    e.target.value="";
-  };
-
-  const resetAll=()=>{
-    setMonths([]);setGoals(DG_DEFAULT);setConfirmModal(false);
-    localStorage.removeItem(STORAGE_KEY);
-    showT("초기화되었습니다.");
-  };
-
-  const autoComments=()=>{
-    if(!c||!lat)return[];
-    const r=[`이번 달 저축률은 ${c.savingRate.toFixed(1)}%입니다.`];
-    if(pc){const d=c.living-pc.living;r.push(`생활비는 전월 대비 ${d>=0?"+":""}${pc.living>0?((d/pc.living)*100).toFixed(1):0}% ${d>=0?"증가":"감소"}했습니다.`);}
-    const top=LF.map(f=>({label:f.label,val:lat[f.key]||0})).sort((a,b)=>b.val-a.val);
-    if(top[0]?.val>0)r.push(`가장 큰 지출 항목은 ${top[0].label}(${fmt(top[0].val)}원)입니다.`);
-    if(c.remain>=0)r.push(`잔여금은 ${fw(c.remain)}원입니다.`);
-    else r.push(`⚠️ 생활비 예산을 ${fw(Math.abs(c.remain))}원 초과했습니다.`);
-    if(pc){const d=c.netAsset-pc.netAsset;r.push(`순자산은 전월 대비 ${d>=0?"+":""}${fw(d)}원 ${d>=0?"증가":"감소"}했습니다.`);}
-    return r;
-  };
-
-  const pieD=lat?LF.map(f=>({name:f.label,value:lat[f.key]||0})).filter(d=>d.value>0):[];
-  const barD=lat?LF.map(f=>({name:f.label,value:lat[f.key]||0})).sort((a,b)=>b.value-a.value).slice(0,8):[];
-  const lineD=months.map(m=>{const cc=cm(m);return{name:m.month+"월",생활비:cc.living,저축:cc.saving,순자산:cc.netAsset};});
-  const TABS=[{k:"dashboard",l:"대시보드",icon:"📊"},{k:"input",l:"입력",icon:"✏️"},{k:"living",l:"생활비",icon:"🛒"},{k:"assets",l:"자산/목표",icon:"🏦"},{k:"history",l:"히스토리",icon:"📅"}];
-  const SECTIONS=[[IF,"수입","#a78bfa","💰"],[SF,"저축/투자 (먼저 확보)","#34d399","📈"],[FF,"고정지출","#fb923c","🔒"],[LF,"생활비","#60a5fa","🛒"],[ASF,"자산 현황","#e879f9","🏦"],[DF,"부채","#f87171","⚠️"]];
-
-  const bg=dark?"#0d0d1a":"#f8f9fc";
-  const bg1=dark?"#13131f":"#ffffff";
-  const bg2=dark?"#1a1a2e":"#f1f3f8";
-  const bg3=dark?"#1e1e32":"#e8ebf2";
-  const t1=dark?"#f1f5f9":"#0f172a";
-  const t2=dark?"#8892a4":"#64748b";
-  const t3=dark?"#4a5568":"#94a3b8";
-  const bd=dark?"rgba(255,255,255,0.07)":"rgba(0,0,0,0.07)";
-  const bd2=dark?"rgba(255,255,255,0.13)":"rgba(0,0,0,0.13)";
-  const card={background:bg1,border:"1px solid "+bd,borderRadius:16};
-  const inp={background:bg2,border:"1px solid "+bd,borderRadius:10,color:t1,fontSize:13,padding:"9px 12px",width:"100%",boxSizing:"border-box",outline:"none"};
-
-  if(!loaded)return <div style={{minHeight:"100vh",background:"#0d0d1a",display:"flex",alignItems:"center",justifyContent:"center",color:"#a78bfa",fontSize:16}}>불러오는 중...</div>;
-
-  return(
-    <div style={{minHeight:"100vh",background:bg,color:t1,fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",fontSize:14}}>
-
-      {/* 초기화 모달 */}
-      {confirmModal&&(
-        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",backdropFilter:"blur(6px)",zIndex:9998,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
-          <div style={{background:bg1,border:"1px solid rgba(248,113,113,0.3)",borderRadius:20,padding:"28px 32px",maxWidth:360,width:"100%"}}>
-            <div style={{fontSize:36,textAlign:"center",marginBottom:12}}>🗑️</div>
-            <div style={{fontSize:17,fontWeight:700,color:t1,textAlign:"center",marginBottom:8}}>전체 초기화</div>
-            <div style={{fontSize:13,color:t2,textAlign:"center",lineHeight:1.8,marginBottom:24}}>
-              모든 월별 데이터와 목표가 삭제됩니다.<br/>
-              <span style={{color:"#f87171",fontWeight:600}}>이 작업은 되돌릴 수 없습니다.</span>
-            </div>
-            <div style={{display:"flex",gap:10}}>
-              <button onClick={()=>setConfirmModal(false)} style={{flex:1,background:bg2,border:"1px solid "+bd,borderRadius:10,padding:"11px 0",fontSize:14,cursor:"pointer",color:t2,fontWeight:500}}>취소</button>
-              <button onClick={resetAll} style={{flex:1,background:"linear-gradient(135deg,#ef4444,#dc2626)",color:"#fff",border:"none",borderRadius:10,padding:"11px 0",fontSize:14,cursor:"pointer",fontWeight:700}}>초기화할게요</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 토스트 */}
-      {toast&&(
-        <div style={{position:"fixed",top:20,left:"50%",transform:"translateX(-50%)",background:"#1e1e32",color:"#fff",padding:"10px 20px",borderRadius:24,fontSize:13,zIndex:9999,border:"1px solid rgba(167,139,250,0.4)",whiteSpace:"nowrap"}}>
-          {toast}
-        </div>
-      )}
-
-      {/* 헤더 */}
-      <div style={{background:dark?"rgba(13,13,26,0.95)":"rgba(255,255,255,0.95)",backdropFilter:"blur(20px)",borderBottom:"1px solid "+bd,position:"sticky",top:0,zIndex:100}}>
-        <div style={{maxWidth:1100,margin:"0 auto",padding:"0 16px",display:"flex",alignItems:"center",justifyContent:"space-between",height:56}}>
-          <div style={{display:"flex",alignItems:"center",gap:10}}>
-            <div style={{width:30,height:30,borderRadius:9,background:"linear-gradient(135deg,#a78bfa,#60a5fa)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:15}}>💜</div>
-            <span style={{fontSize:16,fontWeight:700,letterSpacing:-0.5}}>또리네 가계부</span>
-          </div>
-          <div style={{display:"flex",gap:8,alignItems:"center"}}>
-            <button onClick={startNew} style={{background:"linear-gradient(135deg,#a78bfa,#818cf8)",color:"#fff",border:"none",borderRadius:10,padding:"7px 14px",fontSize:13,cursor:"pointer",fontWeight:600}}>+ 이번 달 입력</button>
-            <button onClick={()=>setDark(d=>!d)} style={{background:bg2,border:"1px solid "+bd,borderRadius:10,padding:"7px 11px",fontSize:14,cursor:"pointer",color:t2}}>{dark?"☀️":"🌙"}</button>
-          </div>
-        </div>
-        <div style={{maxWidth:1100,margin:"0 auto",padding:"0 16px",display:"flex",overflowX:"auto",gap:2}}>
-          {TABS.map(t=>(
-            <button key={t.k} onClick={()=>{if(t.k!=="input")setEd(null);setTab(t.k);}}
-              style={{background:tab===t.k?bg2:"none",border:"none",padding:"8px 14px",fontSize:13,cursor:"pointer",color:tab===t.k?"#a78bfa":t2,borderRadius:"8px 8px 0 0",fontWeight:tab===t.k?600:400,whiteSpace:"nowrap",display:"flex",alignItems:"center",gap:5}}>
-              <span style={{fontSize:13}}>{t.icon}</span>{t.l}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div style={{maxWidth:1100,margin:"0 auto",padding:"20px 16px"}}>
-
-        {/* ===== 대시보드 ===== */}
-        {tab==="dashboard"&&(c===null?(
-          <div style={{textAlign:"center",padding:"80px 0"}}>
-            <div style={{fontSize:52,marginBottom:16}}>📊</div>
-            <div style={{fontSize:22,fontWeight:700,marginBottom:8}}>데이터가 없어요</div>
-            <div style={{fontSize:14,color:t2,marginBottom:24}}>이번 달 수입과 지출을 입력해보세요</div>
-            <button onClick={startNew} style={{background:"linear-gradient(135deg,#a78bfa,#818cf8)",color:"#fff",border:"none",borderRadius:12,padding:"12px 28px",fontSize:15,cursor:"pointer",fontWeight:600}}>+ 데이터 입력하기</button>
-          </div>
-        ):(
-          <div>
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:20}}>
-              <div>
-                <div style={{fontSize:22,fontWeight:700,letterSpacing:-0.5}}>{lat.year}년 {lat.month}월</div>
-                <div style={{fontSize:13,color:t2,marginTop:2}}>최근 기준 데이터</div>
-              </div>
-              <div style={{background:lp>100?"rgba(248,113,113,0.1)":lp>80?"rgba(251,146,60,0.1)":"rgba(52,211,153,0.1)",border:"1px solid "+(lp>100?"rgba(248,113,113,0.3)":lp>80?"rgba(251,146,60,0.3)":"rgba(52,211,153,0.3)"),borderRadius:10,padding:"6px 14px",fontSize:13,fontWeight:600,color:lp_color}}>
-                {lp>100?"예산 초과 ✗":lp>80?"예산 주의 !":"예산 양호 ✓"}
-              </div>
-            </div>
-
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(155px,1fr))",gap:10,marginBottom:18}}>
-              {[
-                {label:"총수입",val:c.income,color:"#a78bfa",icon:"💰"},
-                {label:"저축/투자",val:c.saving,color:"#34d399",icon:"📈",sub:c.savingRate.toFixed(1)+"%"},
-                {label:"고정지출",val:c.fixed,color:"#fb923c",icon:"🔒"},
-                {label:"생활비",val:c.living,color:lp_color,icon:"🛒",sub:"예산 "+lp.toFixed(0)+"%"},
-                {label:"잔여금",val:c.remain,color:c.remain>=0?"#34d399":"#f87171",icon:"💳"},
-                {label:"순자산",val:c.netAsset,color:"#60a5fa",icon:"🏦",sub:pc?"전월比 "+(c.netAsset-pc.netAsset>=0?"+":"")+fw(c.netAsset-pc.netAsset):null},
-              ].map(item=>(
-                <div key={item.label} style={{...card,padding:"14px 16px",position:"relative",overflow:"hidden"}}>
-                  <div style={{position:"absolute",top:-8,right:-8,fontSize:32,opacity:0.07}}>{item.icon}</div>
-                  <div style={{fontSize:10,color:t3,fontWeight:500,letterSpacing:0.5,textTransform:"uppercase",marginBottom:7}}>{item.label}</div>
-                  <div style={{fontSize:19,fontWeight:700,color:item.color,letterSpacing:-0.5,lineHeight:1}}>{item.val<0?"-":""}{fw(Math.abs(item.val))}<span style={{fontSize:12,fontWeight:500,marginLeft:2}}>원</span></div>
-                  {item.sub&&<div style={{fontSize:11,color:item.color,marginTop:4,opacity:0.8}}>{item.sub}</div>}
-                </div>
-              ))}
-            </div>
-
-            <div style={{...card,padding:"16px 20px",marginBottom:18}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-                <div>
-                  <span style={{fontSize:13,fontWeight:600}}>이번 달 생활비</span>
-                  <span style={{fontSize:12,color:t2,marginLeft:8}}>예산 {fmt(c.budget)}원</span>
-                </div>
-                <span style={{fontSize:14,fontWeight:700,color:lp_color}}>{lp.toFixed(1)}%</span>
-              </div>
-              <div style={{background:bg3,borderRadius:8,height:10,overflow:"hidden"}}>
-                <div style={{height:"100%",width:Math.min(lp,100)+"%",background:"linear-gradient(90deg,"+lp_color+","+lp_color+"99)",borderRadius:8}}/>
-              </div>
-              <div style={{display:"flex",justifyContent:"space-between",marginTop:7,fontSize:12,color:t3}}>
-                <span>사용 <span style={{color:lp_color,fontWeight:600}}>{fmt(c.living)}원</span></span>
-                <span>잔여 <span style={{color:c.remain>=0?"#34d399":"#f87171",fontWeight:600}}>{c.remain>=0?"":"-"}{fw(Math.abs(c.remain))}원</span></span>
-              </div>
-            </div>
-
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(290px,1fr))",gap:14,marginBottom:18}}>
-              <div style={{...card,padding:"16px 20px"}}>
-                <div style={{fontSize:13,fontWeight:600,marginBottom:3}}>생활비 구성</div>
-                <div style={{fontSize:11,color:t2,marginBottom:12}}>카테고리별 비중</div>
-                {pieD.length>0?(
-                  <div>
-                    <ResponsiveContainer width="100%" height={170}>
-                      <PieChart>
-                        <Pie data={pieD} cx="50%" cy="50%" innerRadius={50} outerRadius={78} dataKey="value" paddingAngle={2}>
-                          {pieD.map((_,i)=><Cell key={i} fill={PALETTE[i%PALETTE.length]}/>)}
-                        </Pie>
-                        <Tooltip content={<CT/>}/>
-                      </PieChart>
-                    </ResponsiveContainer>
-                    <div style={{display:"flex",flexWrap:"wrap",gap:"3px 10px",marginTop:6}}>
-                      {pieD.slice(0,6).map((d,i)=>(
-                        <span key={i} style={{display:"flex",alignItems:"center",gap:4,fontSize:11,color:t2}}>
-                          <span style={{width:6,height:6,borderRadius:2,background:PALETTE[i%PALETTE.length],display:"inline-block",flexShrink:0}}/>
-                          {d.name}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                ):(
-                  <div style={{color:t3,textAlign:"center",padding:"40px 0",fontSize:13}}>생활비 없음</div>
-                )}
-              </div>
-              <div style={{...card,padding:"16px 20px"}}>
-                <div style={{fontSize:13,fontWeight:600,marginBottom:3}}>지출 순위</div>
-                <div style={{fontSize:11,color:t2,marginBottom:12}}>TOP 8 항목</div>
-                <ResponsiveContainer width="100%" height={210}>
-                  <BarChart data={barD} layout="vertical" margin={{left:0,right:8,top:0,bottom:0}}>
-                    <XAxis type="number" tickFormatter={v=>fw(v)} tick={{fontSize:10,fill:t3}} axisLine={false} tickLine={false}/>
-                    <YAxis dataKey="name" type="category" width={62} tick={{fontSize:11,fill:t2}} axisLine={false} tickLine={false}/>
-                    <Tooltip content={<CT/>}/>
-                    <Bar dataKey="value" radius={[0,6,6,0]}>
-                      {barD.map((_,i)=><Cell key={i} fill={PALETTE[i%PALETTE.length]}/>)}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {lineD.length>1&&(
-              <div style={{...card,padding:"16px 20px",marginBottom:18}}>
-                <div style={{fontSize:13,fontWeight:600,marginBottom:3}}>월별 재무 흐름</div>
-                <div style={{fontSize:11,color:t2,marginBottom:12}}>생활비 · 저축 추이</div>
-                <ResponsiveContainer width="100%" height={190}>
-                  <AreaChart data={lineD}>
-                    <defs>
-                      <linearGradient id="gL" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#fb923c" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#fb923c" stopOpacity={0}/>
-                      </linearGradient>
-                      <linearGradient id="gS" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#34d399" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#34d399" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke={dark?"rgba(255,255,255,0.05)":"rgba(0,0,0,0.05)"}/>
-                    <XAxis dataKey="name" tick={{fontSize:11,fill:t3}} axisLine={false} tickLine={false}/>
-                    <YAxis tickFormatter={v=>fw(v)} tick={{fontSize:10,fill:t3}} axisLine={false} tickLine={false}/>
-                    <Tooltip content={<CT/>}/>
-                    <Area type="monotone" dataKey="생활비" stroke="#fb923c" strokeWidth={2} fill="url(#gL)" dot={{r:4,fill:"#fb923c"}}/>
-                    <Area type="monotone" dataKey="저축" stroke="#34d399" strokeWidth={2} fill="url(#gS)" dot={{r:4,fill:"#34d399"}}/>
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-
-            <div style={{...card,padding:"16px 20px",borderColor:"rgba(167,139,250,0.2)",background:dark?"rgba(167,139,250,0.04)":"rgba(167,139,250,0.03)"}}>
-              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
-                <span style={{fontSize:15}}>💬</span>
-                <span style={{fontSize:13,fontWeight:600,color:"#a78bfa"}}>이번 달 결산 요약</span>
-              </div>
-              {autoComments().map((txt,i)=>(
-                <div key={i} style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:7}}>
-                  <div style={{width:4,height:4,borderRadius:"50%",background:"#a78bfa",marginTop:6,flexShrink:0}}/>
-                  <span style={{fontSize:13,color:t2,lineHeight:1.6}}>{txt}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-
-        {/* ===== 데이터 입력 ===== */}
-        {tab==="input"&&(ed?(
-          <div>
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:18}}>
-              <div>
-                <div style={{fontSize:19,fontWeight:700,letterSpacing:-0.5}}>{ed.year}년 {ed.month}월</div>
-                <div style={{fontSize:12,color:t2,marginTop:3}}>총수입 <span style={{color:"#a78bfa",fontWeight:600}}>{fmt(sumF(ed,IF))}원</span> · 생활비 예산 <span style={{color:"#60a5fa",fontWeight:600}}>{fmt(sumF(ed,IF)-sumF(ed,FF)-sumF(ed,SF))}원</span></div>
-              </div>
-              <div style={{display:"flex",gap:8}}>
-                <button onClick={()=>setEd(null)} style={{background:bg2,border:"1px solid "+bd,borderRadius:10,padding:"7px 14px",fontSize:13,cursor:"pointer",color:t2}}>취소</button>
-                <button onClick={saveEd} style={{background:"linear-gradient(135deg,#a78bfa,#818cf8)",color:"#fff",border:"none",borderRadius:10,padding:"7px 14px",fontSize:13,cursor:"pointer",fontWeight:600}}>저장하기</button>
-              </div>
-            </div>
-
-            <div style={{...card,padding:"14px 18px",marginBottom:12}}>
-              <div style={{fontSize:12,fontWeight:600,color:t2,marginBottom:10,letterSpacing:0.3}}>📅 기간 설정</div>
-              <div style={{display:"flex",gap:10}}>
-                <select value={ed.year} onChange={e=>sf("year",Number(e.target.value))} style={{...inp,width:"auto",padding:"7px 12px"}}>
-                  {[2023,2024,2025,2026,2027,2028].map(y=><option key={y} value={y}>{y}년</option>)}
-                </select>
-                <select value={ed.month} onChange={e=>sf("month",Number(e.target.value))} style={{...inp,width:"auto",padding:"7px 12px"}}>
-                  {[1,2,3,4,5,6,7,8,9,10,11,12].map(m=><option key={m} value={m}>{m}월</option>)}
-                </select>
-              </div>
-            </div>
-
-            {SECTIONS.map(([flds,title,accent2,icon])=>{
-              const total=sumF(ed,flds);
-              return(
-                <div key={title} style={{...card,padding:"14px 18px",marginBottom:12}}>
-                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
-                    <div style={{display:"flex",alignItems:"center",gap:7}}>
-                      <span style={{fontSize:14}}>{icon}</span>
-                      <span style={{fontSize:13,fontWeight:600}}>{title}</span>
-                    </div>
-                    <span style={{fontSize:13,fontWeight:700,color:accent2}}>{fmt(total)}원</span>
-                  </div>
-                  {flds.map(f=>(
-                    <div key={f.key} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"6px 0",borderBottom:"1px solid "+bd}}>
-                      <span style={{fontSize:13,color:t2,minWidth:130}}>{f.label}</span>
-                      <div style={{display:"flex",alignItems:"center",gap:5}}>
-                        <input type="number" value={ed[f.key]||""} onChange={e=>sf(f.key,Number(e.target.value))} placeholder="0"
-                          style={{width:120,textAlign:"right",fontSize:13,padding:"5px 10px",border:"1px solid "+bd2,borderRadius:8,background:bg2,color:t1,outline:"none"}}/>
-                        <span style={{fontSize:12,color:t3,width:14}}>원</span>
-                      </div>
-                    </div>
-                  ))}
-                  {flds===LF&&(
-                    <div style={{marginTop:7,fontSize:12,color:t3}}>📌 생활비 예산: <span style={{color:"#60a5fa",fontWeight:600}}>{fmt(sumF(ed,IF)-sumF(ed,FF)-sumF(ed,SF))}원</span></div>
-                  )}
-                </div>
-              );
-            })}
-
-            <div style={{...card,padding:"14px 18px",marginBottom:14}}>
-              <div style={{fontSize:12,fontWeight:600,color:t2,marginBottom:8}}>📝 메모</div>
-              <textarea value={ed.note||""} onChange={e=>sf("note",e.target.value)} rows={3} placeholder="이번 달 특이사항을 기록하세요..."
-                style={{...inp,resize:"vertical"}}/>
-            </div>
-
-            <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
-              <button onClick={()=>setEd(null)} style={{background:bg2,border:"1px solid "+bd,borderRadius:10,padding:"10px 20px",fontSize:14,cursor:"pointer",color:t2}}>취소</button>
-              <button onClick={saveEd} style={{background:"linear-gradient(135deg,#a78bfa,#818cf8)",color:"#fff",border:"none",borderRadius:10,padding:"10px 24px",fontSize:14,cursor:"pointer",fontWeight:600}}>저장하기</button>
-            </div>
-          </div>
-        ):(
-          <div>
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:18}}>
-              <div style={{fontSize:19,fontWeight:700}}>데이터 관리</div>
-              <button onClick={startNew} style={{background:"linear-gradient(135deg,#a78bfa,#818cf8)",color:"#fff",border:"none",borderRadius:10,padding:"7px 14px",fontSize:13,cursor:"pointer",fontWeight:600}}>+ 이번 달 입력</button>
-            </div>
-            <div style={{...card,padding:"18px 22px"}}>
-              <div style={{fontSize:13,color:t3,marginBottom:12}}>등록된 데이터: <span style={{color:"#a78bfa",fontWeight:600}}>{months.length}개월</span></div>
-              <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:22}}>
-                {months.length===0?(
-                  <div style={{color:t3,fontSize:13,padding:"16px 0"}}>데이터가 없습니다. 이번 달부터 시작해보세요!</div>
-                ):(
-                  months.map(m=>(
-                    <div key={m.year+"-"+m.month} style={{background:bg2,border:"1px solid "+bd,borderRadius:10,padding:"7px 13px",display:"flex",alignItems:"center",gap:10,fontSize:13}}>
-                      <span style={{cursor:"pointer",fontWeight:500}} onClick={()=>startEdit(m)}>{m.year}.{String(m.month).padStart(2,"0")}</span>
-                      <span style={{color:"#f87171",cursor:"pointer",fontSize:15,opacity:0.7}} onClick={()=>delM(m)}>×</span>
-                    </div>
-                  ))
-                )}
-              </div>
-              <div style={{borderTop:"1px solid "+bd,paddingTop:16,display:"flex",gap:10,flexWrap:"wrap"}}>
-                <button onClick={exportCSV} style={{background:bg2,border:"1px solid "+bd,borderRadius:10,padding:"9px 14px",fontSize:13,cursor:"pointer",color:t1,fontWeight:500}}>📥 CSV 내보내기</button>
-                <label style={{background:bg2,border:"1px solid "+bd,borderRadius:10,padding:"9px 14px",fontSize:13,cursor:"pointer",color:t1,fontWeight:500,display:"inline-flex",alignItems:"center"}}>
-                  📤 CSV 불러오기<input type="file" accept=".csv" onChange={importCSV} style={{display:"none"}}/>
-                </label>
-                <button onClick={()=>setConfirmModal(true)} style={{background:"rgba(248,113,113,0.1)",border:"1px solid rgba(248,113,113,0.3)",borderRadius:10,padding:"9px 14px",fontSize:13,cursor:"pointer",color:"#f87171",fontWeight:500}}>🗑 전체 초기화</button>
-              </div>
-            </div>
-          </div>
-        ))}
-
-        {/* ===== 생활비 분석 ===== */}
-        {tab==="living"&&(c===null?(
-          <div style={{textAlign:"center",padding:60,color:t3}}>데이터를 먼저 입력해주세요.</div>
-        ):(
-          <div>
-            <div style={{fontSize:19,fontWeight:700,marginBottom:3}}>{lat.year}년 {lat.month}월 생활비</div>
-            <div style={{fontSize:13,color:t2,marginBottom:18}}>예산 대비 상세 분석</div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:10,marginBottom:18}}>
-              {[
-                {label:"생활비 예산",val:c.budget,color:"#a78bfa"},
-                {label:"실제 지출",val:c.living,color:lp_color},
-                {label:"잔여 예산",val:c.remain,color:c.remain>=0?"#34d399":"#f87171"},
-                {label:"사용률",val:null,text:lp.toFixed(1)+"%",color:lp_color},
-              ].map(item=>(
-                <div key={item.label} style={{...card,padding:"13px 15px"}}>
-                  <div style={{fontSize:10,color:t3,fontWeight:500,letterSpacing:0.3,textTransform:"uppercase",marginBottom:5}}>{item.label}</div>
-                  <div style={{fontSize:17,fontWeight:700,color:item.color}}>{item.text||(item.val<0?"-":"")+fw(Math.abs(item.val||0))}{!item.text&&"원"}</div>
-                </div>
-              ))}
-            </div>
-            <div style={{...card,padding:"16px 20px",marginBottom:14}}>
-              <div style={{fontSize:13,fontWeight:600,marginBottom:14}}>카테고리별 상세</div>
-              {LF.map((f,i)=>{
-                const val=lat[f.key]||0;const pct=c.living>0?(val/c.living)*100:0;
-                return(
-                  <div key={f.key} style={{marginBottom:10}}>
-                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:4,fontSize:13}}>
-                      <span style={{display:"flex",alignItems:"center",gap:6}}>
-                        <span style={{width:8,height:8,borderRadius:3,background:PALETTE[i%PALETTE.length],display:"inline-block"}}/>
-                        {f.label}
-                      </span>
-                      <span style={{color:t2}}>{fmt(val)} <span style={{color:PALETTE[i%PALETTE.length],fontWeight:600}}>{pct.toFixed(1)}%</span></span>
-                    </div>
-                    <div style={{background:bg3,borderRadius:6,height:6}}>
-                      <div style={{height:"100%",width:pct+"%",background:PALETTE[i%PALETTE.length],borderRadius:6}}/>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            {prv&&(
-              <div style={{...card,padding:"16px 20px"}}>
-                <div style={{fontSize:13,fontWeight:600,marginBottom:12}}>{prv.month}월 → {lat.month}월 비교</div>
-                <div style={{display:"grid",gridTemplateColumns:"1fr 80px 80px 80px",gap:6,fontSize:11,color:t3,fontWeight:500,textTransform:"uppercase",marginBottom:7}}>
-                  <span>항목</span><span style={{textAlign:"right"}}>{prv.month}월</span><span style={{textAlign:"right"}}>{lat.month}월</span><span style={{textAlign:"right"}}>증감</span>
-                </div>
-                {LF.map(f=>{
-                  const cur=lat[f.key]||0;const p=prv[f.key]||0;const d=cur-p;
-                  return(
-                    <div key={f.key} style={{display:"grid",gridTemplateColumns:"1fr 80px 80px 80px",gap:6,fontSize:13,padding:"6px 0",borderBottom:"1px solid "+bd}}>
-                      <span style={{color:t1}}>{f.label}</span>
-                      <span style={{textAlign:"right",color:t3}}>{fmt(p)}</span>
-                      <span style={{textAlign:"right"}}>{fmt(cur)}</span>
-                      <span style={{textAlign:"right",color:d>0?"#f87171":d<0?"#34d399":t3,fontWeight:d!==0?600:400}}>{d!==0?(d>0?"+":"")+fmt(d):"-"}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        ))}
-
-        {/* ===== 자산/목표 ===== */}
-        {tab==="assets"&&(c===null?(
-          <div style={{textAlign:"center",padding:60,color:t3}}>데이터를 먼저 입력해주세요.</div>
-        ):(
-          <div>
-            <div style={{fontSize:19,fontWeight:700,marginBottom:3}}>자산 & 목표</div>
-            <div style={{fontSize:13,color:t2,marginBottom:18}}>순자산 현황과 재무 목표</div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:10,marginBottom:18}}>
-              {[
-                {label:"총자산",val:c.totalAsset,color:"#60a5fa"},
-                {label:"총부채",val:c.totalDebt,color:"#f87171"},
-                {label:"순자산",val:c.netAsset,color:"#34d399",sub:pc?"전월比 "+(c.netAsset-pc.netAsset>=0?"+":"")+fw(c.netAsset-pc.netAsset)+"원":null},
-              ].map(item=>(
-                <div key={item.label} style={{...card,padding:"14px 18px"}}>
-                  <div style={{fontSize:10,color:t3,fontWeight:500,letterSpacing:0.3,textTransform:"uppercase",marginBottom:5}}>{item.label}</div>
-                  <div style={{fontSize:19,fontWeight:700,color:item.color,letterSpacing:-0.5}}>{fw(item.val)}<span style={{fontSize:12,fontWeight:500,marginLeft:2}}>원</span></div>
-                  {item.sub&&<div style={{fontSize:11,color:item.color,marginTop:3,opacity:0.8}}>{item.sub}</div>}
-                </div>
-              ))}
-            </div>
-            <div style={{...card,padding:"16px 20px",marginBottom:14}}>
-              <div style={{fontSize:13,fontWeight:600,marginBottom:14}}>자산 구성</div>
-              {ASF.map((f,i)=>{
-                const val=lat[f.key]||0;const pct=c.totalAsset>0?(val/c.totalAsset)*100:0;
-                return val>0?(
-                  <div key={f.key} style={{display:"flex",alignItems:"center",gap:10,marginBottom:9,fontSize:13}}>
-                    <span style={{width:68,color:t2,flexShrink:0}}>{f.label}</span>
-                    <div style={{flex:1,background:bg3,borderRadius:5,height:8}}>
-                      <div style={{height:"100%",width:pct+"%",background:PALETTE[i%PALETTE.length],borderRadius:5}}/>
-                    </div>
-                    <span style={{minWidth:68,textAlign:"right",fontWeight:500}}>{fw(val)}원</span>
-                    <span style={{minWidth:30,color:PALETTE[i%PALETTE.length],fontWeight:600,fontSize:12}}>{pct.toFixed(0)}%</span>
-                  </div>
-                ):null;
-              })}
-            </div>
-            {lineD.length>1&&(
-              <div style={{...card,padding:"16px 20px",marginBottom:14}}>
-                <div style={{fontSize:13,fontWeight:600,marginBottom:3}}>순자산 추이</div>
-                <div style={{fontSize:11,color:t2,marginBottom:12}}>월별 순자산 변화</div>
-                <ResponsiveContainer width="100%" height={185}>
-                  <AreaChart data={lineD}>
-                    <defs>
-                      <linearGradient id="gN" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#a78bfa" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#a78bfa" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke={dark?"rgba(255,255,255,0.05)":"rgba(0,0,0,0.05)"}/>
-                    <XAxis dataKey="name" tick={{fontSize:11,fill:t3}} axisLine={false} tickLine={false}/>
-                    <YAxis tickFormatter={v=>fw(v)} tick={{fontSize:10,fill:t3}} axisLine={false} tickLine={false}/>
-                    <Tooltip content={<CT/>}/>
-                    <Area type="monotone" dataKey="순자산" stroke="#a78bfa" strokeWidth={2.5} fill="url(#gN)" dot={{r:5,fill:"#a78bfa",strokeWidth:2,stroke:bg1}}/>
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-            <div style={{...card,padding:"16px 20px"}}>
-              <div style={{fontSize:13,fontWeight:600,marginBottom:14}}>목표 달성률</div>
-              {goals.map(g=>{
-                const pct=Math.min((c.netAsset/g.target)*100,100);
-                return(
-                  <div key={g.id} style={{marginBottom:18}}>
-                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:7,fontSize:13}}>
-                      <span style={{fontWeight:500}}>{g.label}</span>
-                      <div style={{display:"flex",gap:10,alignItems:"center"}}>
-                        <span style={{color:t3,fontSize:12}}>{fw(g.target)}원</span>
-                        <span style={{color:pct>=100?"#34d399":"#a78bfa",fontWeight:700}}>{pct.toFixed(1)}%</span>
-                        <button onClick={()=>setGoals(goals.filter(x=>x.id!==g.id))} style={{background:"none",border:"none",color:t3,cursor:"pointer",fontSize:16,padding:0,lineHeight:1,opacity:0.6}}>×</button>
-                      </div>
-                    </div>
-                    <div style={{background:bg3,borderRadius:8,height:11}}>
-                      <div style={{height:"100%",width:pct+"%",background:pct>=100?"linear-gradient(90deg,#34d399,#4ade80)":"linear-gradient(90deg,#a78bfa,#818cf8)",borderRadius:8}}/>
-                    </div>
-                    <div style={{fontSize:11,color:t3,marginTop:4}}>{pct<100?"목표까지 "+fw(g.target-c.netAsset)+"원 남음":"🎉 달성 완료!"}</div>
-                  </div>
-                );
-              })}
-              <div style={{display:"flex",gap:8,marginTop:6,flexWrap:"wrap"}}>
-                <input value={gl} onChange={e=>setGl(e.target.value)} placeholder="목표 이름" style={{...inp,flex:1,minWidth:100}}/>
-                <input value={gt} onChange={e=>setGt(e.target.value)} type="number" placeholder="목표 금액" style={{...inp,flex:1,minWidth:100}}/>
-                <button onClick={()=>{if(!gl||!gt)return;setGoals([...goals,{id:Date.now().toString(),label:gl,target:Number(gt)}]);setGl("");setGt("");showT("목표 추가 ✓");}}
-                  style={{background:"linear-gradient(135deg,#a78bfa,#818cf8)",color:"#fff",border:"none",borderRadius:10,padding:"9px 14px",fontSize:13,cursor:"pointer",fontWeight:600,whiteSpace:"nowrap"}}>+ 추가</button>
-              </div>
-            </div>
-          </div>
-        ))}
-
-        {/* ===== 히스토리 ===== */}
-        {tab==="history"&&(
-          <div>
-            <div style={{fontSize:19,fontWeight:700,marginBottom:3}}>월별 히스토리</div>
-            <div style={{fontSize:13,color:t2,marginBottom:18}}>{months.length}개월 데이터</div>
-            {months.length===0?(
-              <div style={{textAlign:"center",padding:60,color:t3}}>데이터가 없습니다.</div>
-            ):(
-              <div style={{display:"flex",flexDirection:"column",gap:10}}>
-                {[...months].reverse().map(m=>{
-                  const cc=cm(m);const mlp=cc.budget>0?(cc.living/cc.budget)*100:0;
-                  const mc=mlp>100?"#f87171":mlp>80?"#fb923c":"#34d399";
-                  return(
-                    <div key={m.year+"-"+m.month} style={{...card,padding:"14px 18px"}}>
-                      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
-                        <div style={{display:"flex",alignItems:"center",gap:10}}>
-                          <div style={{width:42,height:42,borderRadius:11,background:"rgba(167,139,250,0.1)",border:"1px solid rgba(167,139,250,0.2)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                            <span style={{fontSize:9,color:"#a78bfa",fontWeight:600,lineHeight:1}}>{m.year}</span>
-                            <span style={{fontSize:14,color:"#a78bfa",fontWeight:700,lineHeight:1.3}}>{m.month}월</span>
-                          </div>
-                          <div>
-                            <div style={{display:"flex",alignItems:"center",gap:7}}>
-                              <span style={{fontSize:14,fontWeight:600}}>{m.year}년 {m.month}월</span>
-                              <span style={{fontSize:11,padding:"2px 7px",borderRadius:6,background:mlp>100?"rgba(248,113,113,0.1)":mlp>80?"rgba(251,146,60,0.1)":"rgba(52,211,153,0.1)",color:mc,fontWeight:600}}>
-                                {mlp>100?"초과":mlp>80?"주의":"양호"}
-                              </span>
-                            </div>
-                            {m.note&&<div style={{fontSize:12,color:t3,marginTop:2}}>{m.note}</div>}
-                          </div>
-                        </div>
-                        <div style={{display:"flex",gap:6}}>
-                          <button onClick={()=>startEdit(m)} style={{background:bg2,border:"1px solid "+bd,borderRadius:8,padding:"4px 11px",fontSize:12,cursor:"pointer",color:t2,fontWeight:500}}>수정</button>
-                          <button onClick={()=>delM(m)} style={{background:"rgba(248,113,113,0.08)",border:"1px solid rgba(248,113,113,0.2)",borderRadius:8,padding:"4px 11px",fontSize:12,cursor:"pointer",color:"#f87171",fontWeight:500}}>삭제</button>
-                        </div>
-                      </div>
-                      <div style={{display:"flex",flexWrap:"wrap",gap:7}}>
-                        {[["총수입",cc.income,"#a78bfa"],["저축",cc.saving,"#34d399"],["고정비",cc.fixed,"#fb923c"],["생활비",cc.living,"#60a5fa"],["순자산",cc.netAsset,"#e879f9"]].map(([lb,v,col])=>(
-                          <div key={lb} style={{background:bg2,borderRadius:9,padding:"7px 11px",minWidth:75}}>
-                            <div style={{fontSize:10,color:t3,marginBottom:2,fontWeight:500}}>{lb}</div>
-                            <div style={{fontSize:12,fontWeight:700,color:col}}>{fw(v)}<span style={{fontSize:10,fontWeight:500}}>원</span></div>
-                          </div>
-                        ))}
-                        <div style={{background:bg2,borderRadius:9,padding:"7px 11px",minWidth:65}}>
-                          <div style={{fontSize:10,color:t3,marginBottom:2,fontWeight:500}}>저축률</div>
-                          <div style={{fontSize:12,fontWeight:700,color:"#34d399"}}>{cc.savingRate.toFixed(1)}<span style={{fontSize:10,fontWeight:500}}>%</span></div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
-
-      </div>
-    </div>
-  );
+// ===== 저장/불러오기 =====
+function saveData(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({months,goals,dark}));}catch(e){}}
+function loadData(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(raw){const d=JSON.parse(raw);if(d.months)months=d.months;if(d.goals)goals=d.goals;if(d.dark!==undefined)dark=d.dark;}
+  }catch(e){}
 }
 
-const root=ReactDOM.createRoot(document.getElementById("root"));
-root.render(<App/>);
+// ===== 토스트 =====
+let toastTimer;
+function showToast(msg){
+  const el=document.getElementById("toast");
+  el.textContent=msg;el.style.display="block";
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>{el.style.display="none";},2500);
+}
+
+// ===== 다크모드 =====
+function toggleDark(){
+  dark=!dark;
+  document.body.classList.toggle("light",!dark);
+  document.getElementById("dark-btn").textContent=dark?"☀️":"🌙";
+  saveData();render();
+}
+
+// ===== 탭 =====
+function setTab(tab){
+  currentTab=tab;
+  document.querySelectorAll(".tab-content").forEach(el=>el.style.display="none");
+  document.querySelectorAll(".tab-btn").forEach(el=>el.classList.remove("active"));
+  document.getElementById("tab-"+tab).style.display="block";
+  document.querySelector('[data-tab="'+tab+'"]').classList.add("active");
+  if(tab!=="input")editingMonth=null;
+  render();
+}
+
+// ===== CSV =====
+function exportCSV(){
+  const hdr=["연도","월",...ALL.map(f=>f.label),"메모"];
+  const rows=months.map(m=>[m.year,m.month,...ALL.map(f=>m[f.key]||0),(m.note||"").replace(/,/g," ")]);
+  const csv=[hdr,...rows].map(r=>r.join(",")).join("\n");
+  const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");a.href=url;a.download="또리네_가계부.csv";
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast("CSV 다운로드 완료 ✓");
+}
+function importCSV(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const text=ev.target.result.replace(/^\uFEFF/,"");
+      const lines=text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+      if(lines.length<2){showToast("파일 형식이 맞지 않습니다.");return;}
+      const parsed=lines.slice(1).map(line=>{
+        const v=line.split(",");
+        const m=empty(Number(v[0]),Number(v[1]));
+        ALL.forEach((f,i)=>{m[f.key]=Number(v[i+2])||0;});
+        m.note=v[v.length-1]||"";return m;
+      }).filter(m=>m.year>0&&m.month>0);
+      months=parsed.sort((a,b)=>a.year*100+a.month-(b.year*100+b.month));
+      saveData();render();
+      showToast("CSV 불러오기 완료! "+parsed.length+"개월");
+    }catch(e){showToast("파일 읽기 오류");}
+  };
+  reader.readAsText(file,"UTF-8");e.target.value="";
+}
+
+// ===== 모달 =====
+function openModal(){document.getElementById("modal-overlay").classList.add("open");}
+function closeModal(){document.getElementById("modal-overlay").classList.remove("open");}
+function doReset(){
+  months=[];goals=[...DEFAULT_GOALS];
+  localStorage.removeItem(STORAGE_KEY);
+  closeModal();showToast("초기화되었습니다.");render();
+}
+
+// ===== 편집 =====
+function startNew(){
+  const now=new Date();const y=now.getFullYear(),mo=now.getMonth()+1;
+  const ex=months.find(m=>m.year===y&&m.month===mo);
+  editingMonth=ex?{...ex}:Object.assign(empty(y,mo),{salary:5050330,insurance:450000});
+  setTab("input");
+}
+function startEdit(y,m){
+  const ex=months.find(d=>d.year===y&&d.month===m);
+  if(ex){editingMonth={...ex};setTab("input");}
+}
+function deleteMonth(y,m){
+  if(!confirm(y+"년 "+m+"월 데이터를 삭제할까요?"))return;
+  months=months.filter(d=>!(d.year===y&&d.month===m));
+  saveData();render();showToast("삭제되었습니다.");
+}
+function saveEdit(){
+  if(!editingMonth)return;
+  const idx=months.findIndex(m=>m.year===editingMonth.year&&m.month===editingMonth.month);
+  if(idx>=0)months[idx]=editingMonth;
+  else months=[...months,editingMonth].sort((a,b)=>a.year*100+a.month-(b.year*100+b.month));
+  editingMonth=null;saveData();setTab("dashboard");showToast("저장되었습니다 ✓");
+}
+function updateField(key,val){if(editingMonth)editingMonth[key]=Number(val)||0;}
+function addGoal(){
+  const l=document.getElementById("gl").value;
+  const t=document.getElementById("gt").value;
+  if(!l||!t)return;
+  goals.push({id:Date.now().toString(),label:l,target:Number(t)});
+  document.getElementById("gl").value="";document.getElementById("gt").value="";
+  saveData();renderAssets();showToast("목표 추가 ✓");
+}
+function removeGoal(id){goals=goals.filter(g=>g.id!==id);saveData();renderAssets();}
+
+// ===== 렌더 헬퍼 =====
+function metricCard(label,value,color,sub,icon){
+  return `<div class="card metric-card">
+    <div class="metric-icon">${icon||""}</div>
+    <div class="metric-label">${label}</div>
+    <div class="metric-val" style="color:${color}">${value}<span>원</span></div>
+    ${sub?`<div class="metric-sub" style="color:${color}">${sub}</div>`:""}
+  </div>`;
+}
+function sectionCard(title,icon,accent,fields,ed,extra){
+  const total=sumF(ed,fields);
+  const rows=fields.map(f=>`
+    <div class="input-row">
+      <label>${f.label}</label>
+      <input type="number" value="${ed[f.key]||""}" placeholder="0"
+        onchange="updateField('${f.key}',this.value)" oninput="updateField('${f.key}',this.value)"/>
+    </div>`).join("");
+  return `<div class="card section-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:7px">
+        <span style="font-size:14px">${icon}</span>
+        <span style="font-size:13px;font-weight:600">${title}</span>
+      </div>
+      <span style="font-size:13px;font-weight:700;color:${accent}">${fmt(total)}원</span>
+    </div>
+    ${rows}
+    ${extra||""}
+  </div>`;
+}
+
+// ===== 차트 생성 =====
+function destroyCharts(){
+  [chartPie,chartBar,chartLine,chartNet].forEach(c=>{if(c)c.destroy();});
+  chartPie=chartBar=chartLine=chartNet=null;
+}
+
+function createPieChart(canvasId,data){
+  const ctx=document.getElementById(canvasId);if(!ctx)return null;
+  return new Chart(ctx,{type:"doughnut",data:{
+    labels:data.map(d=>d.name),
+    datasets:[{data:data.map(d=>d.value),backgroundColor:PALETTE,borderWidth:0,hoverOffset:6}]
+  },options:{responsive:true,maintainAspectRatio:false,cutout:"62%",plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.label+": "+fmt(c.raw)+"원"}}}}});
+}
+function createBarChart(canvasId,data){
+  const ctx=document.getElementById(canvasId);if(!ctx)return null;
+  return new Chart(ctx,{type:"bar",data:{
+    labels:data.map(d=>d.name),
+    datasets:[{data:data.map(d=>d.value),backgroundColor:PALETTE,borderRadius:4,borderSkipped:false}]
+  },options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmt(c.raw)+"원"}}},scales:{x:{ticks:{callback:v=>fw(v),color:"#4a5568",font:{size:10}},grid:{color:"rgba(255,255,255,0.04)"}},y:{ticks:{color:"#8892a4",font:{size:11}},grid:{display:false}}}}});
+}
+function createLineChart(canvasId,labels,datasets){
+  const ctx=document.getElementById(canvasId);if(!ctx)return null;
+  return new Chart(ctx,{type:"line",data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:"#8892a4",boxWidth:12,font:{size:12}}}},scales:{x:{ticks:{color:"#4a5568",font:{size:11}},grid:{color:"rgba(255,255,255,0.04)"}},y:{ticks:{callback:v=>fw(v),color:"#4a5568",font:{size:10}},grid:{color:"rgba(255,255,255,0.04)"}}},interaction:{mode:"index",intersect:false}}});
+}
+
+// ===== 대시보드 =====
+function renderDashboard(){
+  const el=document.getElementById("tab-dashboard");
+  destroyCharts();
+  const lat=months[months.length-1]||null;
+  const prv=months[months.length-2]||null;
+  if(!lat){
+    el.innerHTML=`<div class="empty-state"><div class="emoji">📊</div><h2>데이터가 없어요</h2><p>이번 달 수입과 지출을 입력해보세요</p><button class="btn-primary" onclick="startNew()" style="padding:12px 28px;font-size:15px;border-radius:12px">+ 데이터 입력하기</button></div>`;
+    return;
+  }
+  const c=calcM(lat),pc=prv?calcM(prv):null;
+  const lp=c.budget>0?(c.living/c.budget)*100:0;
+  const lpc=lpColor(lp);
+
+  // 자동 코멘트
+  const comments=[];
+  comments.push(`이번 달 저축률은 <b>${c.savingRate.toFixed(1)}%</b>입니다.`);
+  if(pc){const d=c.living-pc.living;comments.push(`생활비는 전월 대비 <b>${d>=0?"+":""}${pc.living>0?((d/pc.living)*100).toFixed(1):0}%</b> ${d>=0?"증가":"감소"}했습니다.`);}
+  const top=[...LF].map(f=>({label:f.label,val:lat[f.key]||0})).sort((a,b)=>b.val-a.val);
+  if(top[0]?.val>0)comments.push(`가장 큰 지출 항목은 <b>${top[0].label}</b>(${fmt(top[0].val)}원)입니다.`);
+  if(c.remain>=0)comments.push(`잔여금은 <b>${fw(c.remain)}원</b>입니다.`);
+  else comments.push(`⚠️ 생활비 예산을 <b>${fw(Math.abs(c.remain))}원</b> 초과했습니다.`);
+  if(pc){const d=c.netAsset-pc.netAsset;comments.push(`순자산은 전월 대비 <b>${d>=0?"+":""}${fw(d)}원</b> ${d>=0?"증가":"감소"}했습니다.`);}
+
+  const pieData=LF.map(f=>({name:f.label,value:lat[f.key]||0})).filter(d=>d.value>0);
+  const barData=LF.map(f=>({name:f.label,value:lat[f.key]||0})).sort((a,b)=>b.value-a.value).slice(0,8);
+  const lineLabels=months.map(m=>m.month+"월");
+  const lineLiving=months.map(m=>calcM(m).living);
+  const lineSaving=months.map(m=>calcM(m).saving);
+
+  el.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div>
+        <div style="font-size:22px;font-weight:700;letter-spacing:-0.5px">${lat.year}년 ${lat.month}월</div>
+        <div style="font-size:13px;color:var(--t2);margin-top:2px">최근 기준 데이터</div>
+      </div>
+      <div class="badge ${lpBadge(lp)}" style="font-size:13px;padding:6px 14px;border-radius:10px">${lp>100?"예산 초과 ✗":lp>80?"예산 주의 !":"예산 양호 ✓"}</div>
+    </div>
+
+    <div class="metric-grid">
+      ${metricCard("총수입",fw(c.income),"#a78bfa","","💰")}
+      ${metricCard("저축/투자",fw(c.saving),"#34d399","저축률 "+c.savingRate.toFixed(1)+"%","📈")}
+      ${metricCard("고정지출",fw(c.fixed),"#fb923c","","🔒")}
+      ${metricCard("생활비",fw(c.living),lpc,"예산 "+lp.toFixed(0)+"%","🛒")}
+      ${metricCard("잔여금",(c.remain>=0?"":"-")+fw(Math.abs(c.remain)),c.remain>=0?"#34d399":"#f87171","","💳")}
+      ${metricCard("순자산",fw(c.netAsset),"#60a5fa",pc?"전월比 "+(c.netAsset-pc.netAsset>=0?"+":"")+fw(c.netAsset-pc.netAsset):"","🏦")}
+    </div>
+
+    <div class="card section-card" style="margin-bottom:18px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div><span style="font-size:13px;font-weight:600">이번 달 생활비</span><span style="font-size:12px;color:var(--t2);margin-left:8px">예산 ${fmt(c.budget)}원</span></div>
+        <span style="font-size:14px;font-weight:700;color:${lpc}">${lp.toFixed(1)}%</span>
+      </div>
+      <div class="progress-wrap"><div class="progress-bar" style="width:${Math.min(lp,100)}%;background:${lpc}"></div></div>
+      <div style="display:flex;justify-content:space-between;margin-top:7px;font-size:12px;color:var(--t3)">
+        <span>사용 <b style="color:${lpc}">${fmt(c.living)}원</b></span>
+        <span>잔여 <b style="color:${c.remain>=0?"#34d399":"#f87171"}">${c.remain>=0?"":"-"}${fw(Math.abs(c.remain))}원</b></span>
+      </div>
+    </div>
+
+    <div class="chart-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px;margin-bottom:18px">
+      <div class="card section-card">
+        <div style="font-size:13px;font-weight:600;margin-bottom:3px">생활비 구성</div>
+        <div style="font-size:11px;color:var(--t2);margin-bottom:12px">카테고리별 비중</div>
+        ${pieData.length>0?`
+          <div class="chart-wrap" style="height:170px"><canvas id="chart-pie"></canvas></div>
+          <div style="display:flex;flex-wrap:wrap;gap:3px 10px;margin-top:8px">
+            ${pieData.slice(0,6).map((d,i)=>`<span style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--t2)"><span style="width:6px;height:6px;border-radius:2px;background:${PALETTE[i%PALETTE.length]};display:inline-block"></span>${d.name}</span>`).join("")}
+          </div>
+        `:`<div style="color:var(--t3);text-align:center;padding:40px 0;font-size:13px">생활비 없음</div>`}
+      </div>
+      <div class="card section-card">
+        <div style="font-size:13px;font-weight:600;margin-bottom:3px">지출 순위</div>
+        <div style="font-size:11px;color:var(--t2);margin-bottom:12px">TOP 8 항목</div>
+        <div class="chart-wrap" style="height:210px"><canvas id="chart-bar"></canvas></div>
+      </div>
+    </div>
+
+    ${months.length>1?`
+    <div class="card section-card" style="margin-bottom:18px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:3px">월별 재무 흐름</div>
+      <div style="font-size:11px;color:var(--t2);margin-bottom:12px">생활비 · 저축 추이</div>
+      <div class="chart-wrap" style="height:190px"><canvas id="chart-line"></canvas></div>
+    </div>`:""}
+
+    <div class="card section-card" style="border-color:rgba(167,139,250,0.2);background:rgba(167,139,250,0.04)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <span style="font-size:15px">💬</span>
+        <span style="font-size:13px;font-weight:600;color:#a78bfa">이번 달 결산 요약</span>
+      </div>
+      ${comments.map(t=>`
+        <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:7px">
+          <div style="width:4px;height:4px;border-radius:50%;background:#a78bfa;margin-top:6px;flex-shrink:0"></div>
+          <span style="font-size:13px;color:var(--t2);line-height:1.6">${t}</span>
+        </div>`).join("")}
+    </div>
+  `;
+
+  // 차트 생성
+  setTimeout(()=>{
+    if(pieData.length>0)chartPie=createPieChart("chart-pie",pieData);
+    chartBar=createBarChart("chart-bar",barData);
+    if(months.length>1){
+      chartLine=createLineChart("chart-line",lineLabels,[
+        {label:"생활비",data:lineLiving,borderColor:"#fb923c",backgroundColor:"rgba(251,146,60,.15)",tension:.4,fill:true,pointBackgroundColor:"#fb923c",pointRadius:4},
+        {label:"저축",data:lineSaving,borderColor:"#34d399",backgroundColor:"rgba(52,211,153,.15)",tension:.4,fill:true,pointBackgroundColor:"#34d399",pointRadius:4}
+      ]);
+    }
+  },50);
+}
+
+// ===== 입력 탭 =====
+function renderInput(){
+  const el=document.getElementById("tab-input");
+  if(!editingMonth){
+    el.innerHTML=`
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+        <div style="font-size:19px;font-weight:700">데이터 관리</div>
+        <button class="btn-primary" onclick="startNew()">+ 이번 달 입력</button>
+      </div>
+      <div class="card section-card">
+        <div style="font-size:13px;color:var(--t3);margin-bottom:12px">등록된 데이터: <span style="color:#a78bfa;font-weight:600">${months.length}개월</span></div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px">
+          ${months.length===0?`<div style="color:var(--t3);font-size:13px;padding:16px 0">데이터가 없습니다. 이번 달부터 시작해보세요!</div>`:
+          months.map(m=>`
+            <div style="background:var(--bg2);border:1px solid var(--bd);border-radius:10px;padding:7px 13px;display:flex;align-items:center;gap:10px;font-size:13px">
+              <span style="cursor:pointer;font-weight:500" onclick="startEdit(${m.year},${m.month})">${m.year}.${String(m.month).padStart(2,"0")}</span>
+              <span style="color:#f87171;cursor:pointer;font-size:15px;opacity:.7" onclick="deleteMonth(${m.year},${m.month})">×</span>
+            </div>`).join("")}
+        </div>
+        <div style="border-top:1px solid var(--bd);padding-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+          <button onclick="exportCSV()" style="background:var(--bg2);border:1px solid var(--bd);border-radius:10px;padding:9px 14px;font-size:13px;color:var(--t1);font-weight:500">📥 CSV 내보내기</button>
+          <label style="background:var(--bg2);border:1px solid var(--bd);border-radius:10px;padding:9px 14px;font-size:13px;color:var(--t1);font-weight:500;cursor:pointer;display:inline-flex;align-items:center">
+            📤 CSV 불러오기<input type="file" accept=".csv" onchange="importCSV(event)" style="display:none"/>
+          </label>
+          <button onclick="openModal()" style="background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);border-radius:10px;padding:9px 14px;font-size:13px;color:#f87171;font-weight:500">🗑 전체 초기화</button>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const ed=editingMonth;
+  const budget=sumF(ed,IF)-sumF(ed,FF)-sumF(ed,SF);
+  const SECTIONS=[[IF,"수입","#a78bfa","💰"],[SF,"저축/투자 (먼저 확보)","#34d399","📈"],[FF,"고정지출","#fb923c","🔒"],[LF,"생활비","#60a5fa","🛒"],[ASF,"자산 현황","#e879f9","🏦"],[DF,"부채","#f87171","⚠️"]];
+
+  el.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+      <div>
+        <div style="font-size:19px;font-weight:700;letter-spacing:-0.5px">${ed.year}년 ${ed.month}월</div>
+        <div style="font-size:12px;color:var(--t2);margin-top:3px" id="input-summary">총수입 <span style="color:#a78bfa;font-weight:600">${fmt(sumF(ed,IF))}원</span> · 생활비 예산 <span style="color:#60a5fa;font-weight:600">${fmt(budget)}원</span></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button onclick="editingMonth=null;renderInput()" style="background:var(--bg2);border:1px solid var(--bd);border-radius:10px;padding:7px 14px;font-size:13px;color:var(--t2)">취소</button>
+        <button onclick="saveEdit()" class="btn-primary">저장하기</button>
+      </div>
+    </div>
+
+    <div class="card section-card">
+      <div style="font-size:12px;font-weight:600;color:var(--t2);margin-bottom:10px">📅 기간 설정</div>
+      <div style="display:flex;gap:10px">
+        <select onchange="editingMonth.year=Number(this.value)" style="padding:7px 12px;width:auto">
+          ${[2023,2024,2025,2026,2027,2028].map(y=>`<option value="${y}" ${ed.year===y?"selected":""}>${y}년</option>`).join("")}
+        </select>
+        <select onchange="editingMonth.month=Number(this.value)" style="padding:7px 12px;width:auto">
+          ${[1,2,3,4,5,6,7,8,9,10,11,12].map(m=>`<option value="${m}" ${ed.month===m?"selected":""}>${m}월</option>`).join("")}
+        </select>
+      </div>
+    </div>
+
+    ${SECTIONS.map(([flds,title,accent,icon])=>sectionCard(title,icon,accent,flds,ed,
+      flds===LF?`<div style="margin-top:7px;font-size:12px;color:var(--t3)">📌 생활비 예산: <span style="color:#60a5fa;font-weight:600" id="budget-display">${fmt(budget)}원</span></div>`:""
+    )).join("")}
+
+    <div class="card section-card" style="margin-bottom:14px">
+      <div style="font-size:12px;font-weight:600;color:var(--t2);margin-bottom:8px">📝 메모</div>
+      <textarea rows="3" placeholder="이번 달 특이사항을 기록하세요..." style="width:100%;resize:vertical;border-radius:10px;padding:9px 12px" onchange="editingMonth.note=this.value">${ed.note||""}</textarea>
+    </div>
+
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button onclick="editingMonth=null;renderInput()" style="background:var(--bg2);border:1px solid var(--bd);border-radius:10px;padding:10px 20px;font-size:14px;color:var(--t2)">취소</button>
+      <button onclick="saveEdit()" class="btn-primary" style="padding:10px 24px;font-size:14px">저장하기</button>
+    </div>
+  `;
+}
+
+// ===== 생활비 =====
+function renderLiving(){
+  const el=document.getElementById("tab-living");
+  const lat=months[months.length-1]||null;
+  const prv=months[months.length-2]||null;
+  if(!lat){el.innerHTML=`<div style="text-align:center;padding:60px;color:var(--t3)">데이터를 먼저 입력해주세요.</div>`;return;}
+  const c=calcM(lat),lp=c.budget>0?(c.living/c.budget)*100:0,lpc=lpColor(lp);
+  el.innerHTML=`
+    <div style="font-size:19px;font-weight:700;margin-bottom:3px">${lat.year}년 ${lat.month}월 생활비</div>
+    <div style="font-size:13px;color:var(--t2);margin-bottom:18px">예산 대비 상세 분석</div>
+    <div class="metric-grid" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr))">
+      ${metricCard("생활비 예산",fw(c.budget),"#a78bfa","","")}
+      ${metricCard("실제 지출",fw(c.living),lpc,"","")}
+      ${metricCard("잔여 예산",(c.remain>=0?"":"-")+fw(Math.abs(c.remain)),c.remain>=0?"#34d399":"#f87171","","")}
+      <div class="card metric-card"><div class="metric-label">사용률</div><div class="metric-val" style="color:${lpc}">${lp.toFixed(1)}<span>%</span></div></div>
+    </div>
+    <div class="card section-card" style="margin-bottom:14px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:14px">카테고리별 상세</div>
+      ${LF.map((f,i)=>{const val=lat[f.key]||0;const pct=c.living>0?(val/c.living)*100:0;return`
+        <div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:13px">
+            <span style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:3px;background:${PALETTE[i%PALETTE.length]};display:inline-block"></span>${f.label}</span>
+            <span style="color:var(--t2)">${fmt(val)} <span style="color:${PALETTE[i%PALETTE.length]};font-weight:600">${pct.toFixed(1)}%</span></span>
+          </div>
+          <div class="progress-wrap" style="height:6px"><div class="progress-bar" style="width:${pct}%;background:${PALETTE[i%PALETTE.length]}"></div></div>
+        </div>`}).join("")}
+    </div>
+    ${prv?`
+    <div class="card section-card">
+      <div style="font-size:13px;font-weight:600;margin-bottom:12px">${prv.month}월 → ${lat.month}월 비교</div>
+      <div style="display:grid;grid-template-columns:1fr 80px 80px 80px;gap:6px;font-size:11px;color:var(--t3);font-weight:500;text-transform:uppercase;margin-bottom:7px">
+        <span>항목</span><span style="text-align:right">${prv.month}월</span><span style="text-align:right">${lat.month}월</span><span style="text-align:right">증감</span>
+      </div>
+      ${LF.map(f=>{const cur=lat[f.key]||0,p=prv[f.key]||0,d=cur-p;return`
+        <div style="display:grid;grid-template-columns:1fr 80px 80px 80px;gap:6px;font-size:13px;padding:6px 0;border-bottom:1px solid var(--bd)">
+          <span>${f.label}</span>
+          <span style="text-align:right;color:var(--t3)">${fmt(p)}</span>
+          <span style="text-align:right">${fmt(cur)}</span>
+          <span style="text-align:right;color:${d>0?"#f87171":d<0?"#34d399":"var(--t3)"};font-weight:${d!==0?600:400}">${d!==0?(d>0?"+":"")+fmt(d):"-"}</span>
+        </div>`}).join("")}
+    </div>`:""}
+  `;
+}
+
+// ===== 자산/목표 =====
+function renderAssets(){
+  const el=document.getElementById("tab-assets");
+  const lat=months[months.length-1]||null;
+  const prv=months[months.length-2]||null;
+  if(!lat){el.innerHTML=`<div style="text-align:center;padding:60px;color:var(--t3)">데이터를 먼저 입력해주세요.</div>`;return;}
+  const c=calcM(lat),pc=prv?calcM(prv):null;
+  const lineLabels=months.map(m=>m.month+"월");
+  const lineNet=months.map(m=>calcM(m).netAsset);
+
+  el.innerHTML=`
+    <div style="font-size:19px;font-weight:700;margin-bottom:3px">자산 & 목표</div>
+    <div style="font-size:13px;color:var(--t2);margin-bottom:18px">순자산 현황과 재무 목표</div>
+    <div class="metric-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
+      ${metricCard("총자산",fw(c.totalAsset),"#60a5fa","","")}
+      ${metricCard("총부채",fw(c.totalDebt),"#f87171","","")}
+      ${metricCard("순자산",fw(c.netAsset),"#34d399",pc?"전월比 "+(c.netAsset-pc.netAsset>=0?"+":"")+fw(c.netAsset-pc.netAsset)+"원":"","")}
+    </div>
+    <div class="card section-card" style="margin-bottom:14px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:14px">자산 구성</div>
+      ${ASF.map((f,i)=>{const val=lat[f.key]||0;const pct=c.totalAsset>0?(val/c.totalAsset)*100:0;return val>0?`
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;font-size:13px">
+          <span style="width:68px;color:var(--t2);flex-shrink:0">${f.label}</span>
+          <div class="progress-wrap" style="flex:1;height:8px"><div class="progress-bar" style="width:${pct}%;background:${PALETTE[i%PALETTE.length]}"></div></div>
+          <span style="min-width:68px;text-align:right;font-weight:500">${fw(val)}원</span>
+          <span style="min-width:30px;color:${PALETTE[i%PALETTE.length]};font-weight:600;font-size:12px">${pct.toFixed(0)}%</span>
+        </div>`:"";}).join("")}
+    </div>
+    ${months.length>1?`
+    <div class="card section-card" style="margin-bottom:14px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:3px">순자산 추이</div>
+      <div style="font-size:11px;color:var(--t2);margin-bottom:12px">월별 순자산 변화</div>
+      <div class="chart-wrap" style="height:185px"><canvas id="chart-net"></canvas></div>
+    </div>`:""}
+    <div class="card section-card">
+      <div style="font-size:13px;font-weight:600;margin-bottom:14px">목표 달성률</div>
+      ${goals.map(g=>{const pct=Math.min((c.netAsset/g.target)*100,100);return`
+        <div style="margin-bottom:18px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:7px;font-size:13px">
+            <span style="font-weight:500">${g.label}</span>
+            <div style="display:flex;gap:10px;align-items:center">
+              <span style="color:var(--t3);font-size:12px">${fw(g.target)}원</span>
+              <span style="color:${pct>=100?"#34d399":"#a78bfa"};font-weight:700">${pct.toFixed(1)}%</span>
+              <button onclick="removeGoal('${g.id}')" style="background:none;border:none;color:var(--t3);font-size:16px;padding:0;line-height:1;opacity:.6">×</button>
+            </div>
+          </div>
+          <div class="progress-wrap" style="height:11px"><div class="progress-bar" style="width:${pct}%;background:${pct>=100?"linear-gradient(90deg,#34d399,#4ade80)":"linear-gradient(90deg,#a78bfa,#818cf8)"}"></div></div>
+          <div style="font-size:11px;color:var(--t3);margin-top:4px">${pct<100?"목표까지 "+fw(g.target-c.netAsset)+"원 남음":"🎉 달성 완료!"}</div>
+        </div>`}).join("")}
+      <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
+        <input id="gl" placeholder="목표 이름" style="flex:1;min-width:100px"/>
+        <input id="gt" type="number" placeholder="목표 금액" style="flex:1;min-width:100px"/>
+        <button onclick="addGoal()" class="btn-primary" style="padding:9px 14px;white-space:nowrap">+ 추가</button>
+      </div>
+    </div>
+  `;
+  if(months.length>1){
+    setTimeout(()=>{
+      chartNet=createLineChart("chart-net",lineLabels,[
+        {label:"순자산",data:lineNet,borderColor:"#a78bfa",backgroundColor:"rgba(167,139,250,.15)",tension:.4,fill:true,pointBackgroundColor:"#a78bfa",pointRadius:5,pointBorderWidth:2,pointBorderColor:"var(--bg1)"}
+      ]);
+    },50);
+  }
+}
+
+// ===== 히스토리 =====
+function renderHistory(){
+  const el=document.getElementById("tab-history");
+  el.innerHTML=`
+    <div style="font-size:19px;font-weight:700;margin-bottom:3px">월별 히스토리</div>
+    <div style="font-size:13px;color:var(--t2);margin-bottom:18px">${months.length}개월 데이터</div>
+    ${months.length===0?`<div style="text-align:center;padding:60px;color:var(--t3)">데이터가 없습니다.</div>`:
+    [...months].reverse().map(m=>{
+      const cc=calcM(m),mlp=cc.budget>0?(cc.living/cc.budget)*100:0;
+      const mc=lpColor(mlp);
+      return`
+      <div class="card section-card" style="margin-bottom:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="date-badge"><span class="year">${m.year}</span><span class="month">${m.month}월</span></div>
+            <div>
+              <div style="display:flex;align-items:center;gap:7px">
+                <span style="font-size:14px;font-weight:600">${m.year}년 ${m.month}월</span>
+                <span class="badge ${lpBadge(mlp)}">${lpText(mlp)}</span>
+              </div>
+              ${m.note?`<div style="font-size:12px;color:var(--t3);margin-top:2px">${m.note}</div>`:""}
+            </div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button onclick="startEdit(${m.year},${m.month})" style="background:var(--bg2);border:1px solid var(--bd);border-radius:8px;padding:4px 11px;font-size:12px;color:var(--t2);font-weight:500">수정</button>
+            <button onclick="deleteMonth(${m.year},${m.month})" style="background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:8px;padding:4px 11px;font-size:12px;color:#f87171;font-weight:500">삭제</button>
+          </div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:7px">
+          ${[["총수입",cc.income,"#a78bfa"],["저축",cc.saving,"#34d399"],["고정비",cc.fixed,"#fb923c"],["생활비",cc.living,"#60a5fa"],["순자산",cc.netAsset,"#e879f9"]].map(([lb,v,col])=>`
+            <div style="background:var(--bg2);border-radius:9px;padding:7px 11px;min-width:75px">
+              <div style="font-size:10px;color:var(--t3);margin-bottom:2px;font-weight:500">${lb}</div>
+              <div style="font-size:12px;font-weight:700;color:${col}">${fw(v)}<span style="font-size:10px;font-weight:500">원</span></div>
+            </div>`).join("")}
+          <div style="background:var(--bg2);border-radius:9px;padding:7px 11px;min-width:65px">
+            <div style="font-size:10px;color:var(--t3);margin-bottom:2px;font-weight:500">저축률</div>
+            <div style="font-size:12px;font-weight:700;color:#34d399">${cc.savingRate.toFixed(1)}<span style="font-size:10px;font-weight:500">%</span></div>
+          </div>
+        </div>
+      </div>`}).join("")}
+  `;
+}
+
+// ===== 메인 렌더 =====
+function render(){
+  if(currentTab==="dashboard")renderDashboard();
+  else if(currentTab==="input")renderInput();
+  else if(currentTab==="living")renderLiving();
+  else if(currentTab==="assets")renderAssets();
+  else if(currentTab==="history")renderHistory();
+}
+
+// ===== 초기화 =====
+loadData();
+document.body.classList.toggle("light",!dark);
+document.getElementById("dark-btn").textContent=dark?"☀️":"🌙";
+render();
 </script>
 </body>
 </html>
